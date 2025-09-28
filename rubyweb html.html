@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RubyWeb</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            overscroll-behavior: none; 
+        }
+        .main-menu-icon { stroke-width: 1.5; }
+        .active-menu { color: #ef4444; /* red-500 */ }
+        .submenu-active {
+            border-bottom: 2px solid #ef4444;
+            color: #ef4444;
+            font-weight: 700;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes splash-animation {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #splash-icon { animation: splash-animation 1.5s ease-in-out forwards; }
+        
+        @keyframes run-animation {
+            from { transform: translateX(120%); }
+            to { transform: translateX(-120%); }
+        }
+        .running-man-container {
+            width: 200px;
+            height: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        .running-man {
+            animation: run-animation 2s linear infinite;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            font-size: 50px; 
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- 1. 起動アニメーション画面 -->
+    <div id="splash-screen" class="fixed inset-0 bg-gray-900 flex items-center justify-center z-[100]">
+        <div id="splash-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+            <h1 class="text-4xl font-extrabold text-center mt-4">RubyWeb</h1>
+        </div>
+    </div>
+
+    <!-- 2. ログイン/新規登録画面 -->
+    <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center bg-gray-900 p-4">
+        <div class="w-full max-w-md">
+            <div id="login-form-container">
+                <h2 class="text-3xl font-bold text-center mb-6 text-red-400">ログイン</h2>
+                <form id="login-form" class="space-y-4">
+                    <input type="text" id="login-id" placeholder="ID" class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                    <div class="relative">
+                        <input type="password" id="login-password" placeholder="パスワード" class="w-full p-3 pr-10 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                        <button type="button" class="password-toggle-btn absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white">
+                            <i data-lucide="eye" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                    <button type="submit" class="w-full p-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors">ログイン</button>
+                </form>
+                <p class="text-center mt-4">アカウントをお持ちでないですか？ <button id="show-register-btn" class="text-red-400 hover:underline">新規登録</button></p>
+            </div>
+            <div id="register-form-container" class="hidden">
+                 <h2 class="text-3xl font-bold text-center mb-6 text-red-400">新規登録</h2>
+                <form id="register-form" class="space-y-4">
+                    <input type="text" id="register-name" placeholder="名前 (日本語OK)" class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                    <input type="text" id="register-id" placeholder="ID (英数字のみ)" class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500" required pattern="^[a-zA-Z0-9_]+$">
+                    <div class="relative">
+                        <input type="password" id="register-password" placeholder="パスワード" class="w-full p-3 pr-10 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                        <button type="button" class="password-toggle-btn absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white">
+                            <i data-lucide="eye" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                    <select id="register-language" class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="zh">中文</option><option value="es">Español</option>
+                    </select>
+                    <button type="submit" class="w-full p-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors">登録する</button>
+                </form>
+                 <p class="text-center mt-4">すでにアカウントをお持ちですか？ <button id="show-login-btn" class="text-red-400 hover:underline">ログイン</button></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3. メインアプリ画面 -->
+    <div id="main-app" class="hidden h-screen w-screen">
+        <!-- PC版 -->
+        <div class="hidden md:flex h-full">
+            <nav class="w-64 bg-gray-900 border-r border-gray-800 p-4 flex flex-col">
+                <div class="text-2xl font-bold text-red-500 mb-8 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    <span>RubyWeb</span>
+                </div>
+                <div class="space-y-2 flex-grow main-menu-container"></div>
+                <button id="logout-btn-pc" class="w-full mt-4 text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3 transition-colors">
+                    <i data-lucide="log-out" class="main-menu-icon"></i><span>ログアウト</span>
+                </button>
+            </nav>
+            <main class="flex-1 flex flex-col bg-black">
+                <header id="pc-submenu" class="h-16 bg-gray-900 border-b border-gray-800 flex items-center px-6 space-x-8"></header>
+                <div id="content-area" class="flex-1 overflow-y-auto relative"></div>
+            </main>
+        </div>
+        <!-- スマホ版 -->
+        <div class="md:hidden flex flex-col h-full w-full bg-black">
+            <header id="mobile-submenu" class="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-center px-4 space-x-6 relative">
+                 <div id="mobile-header-content" class="flex items-center justify-center flex-1"></div>
+                <button id="logout-btn-mobile" class="absolute right-4"><i data-lucide="log-out" class="main-menu-icon"></i></button>
+            </header>
+            <main id="mobile-content-area" class="flex-1 overflow-y-auto relative"></main>
+            <nav class="h-16 bg-gray-900 border-t border-gray-800 flex justify-around items-center main-menu-container"></nav>
+        </div>
+    </div>
+
+    <!-- ユーティリティ要素 -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center z-[90]">
+        <div class="running-man-container">
+             <div class="running-man">🏃‍♂️📦</div>
+        </div>
+        <p id="loading-text" class="text-lg font-bold mt-4">処理中...</p>
+    </div>
+    <div id="error-toast" class="hidden fixed bottom-5 right-5 bg-red-700 text-white p-4 rounded-lg shadow-lg z-[90]">
+        サーバーエラーが発生しました。
+    </div>
+
+     <!-- 新しいグループ作成モーダル -->
+    <div id="create-group-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">新しいグループを作成</h2>
+            <form id="create-group-form">
+                <div class="mb-4">
+                    <label for="group-name" class="block mb-2 font-bold">グループ名</label>
+                    <input type="text" id="group-name" class="w-full p-2 bg-gray-700 rounded-md" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block mb-2 font-bold">メンバー (フォロー中のユーザー)</label>
+                    <div id="group-members-list" class="max-h-48 overflow-y-auto bg-gray-700 rounded-md p-2 space-y-2">
+                        <!-- ユーザーリストがここに入る -->
+                    </div>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancel-group-creation" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg font-bold">キャンセル</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-bold">作成</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ゲーム詳細モーダル -->
+    <div id="game-detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg w-full max-w-2xl relative">
+            <button id="close-game-detail" class="absolute top-4 right-4 text-gray-400 hover:text-white z-10">
+                <i data-lucide="x"></i>
+            </button>
+            <img id="game-detail-banner" src="" class="w-full h-64 object-cover rounded-t-lg">
+            <div class="p-6">
+                <h2 id="game-detail-title" class="text-3xl font-bold mb-2"></h2>
+                <p id="game-detail-description" class="text-gray-300 mb-8"></p>
+                <div class="flex justify-end">
+                    <button id="play-game-btn" class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold flex items-center gap-2">
+                        <i data-lucide="play"></i>
+                        <span>プレイ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =============================================================== -->
+    <!-- 各ページのコンテンツテンプレート (最初は非表示) -->
+    <!-- =============================================================== -->
+    <div id="page-templates" class="hidden">
+        <div id="view-search" class="p-4 md:p-6">
+            <div class="relative mb-6">
+                <input type="search" id="search-input" placeholder="ユーザーや投稿を検索" class="w-full p-4 pl-12 bg-gray-800 rounded-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <div id="search-results-container" class="space-y-6">
+                 <p class="text-center text-gray-400">検索結果がここに表示されます。</p>
+            </div>
+        </div>
+        <div id="view-text" class="p-4 md:p-6"><h2 class="text-2xl font-bold mb-4">メディアフィード</h2><div id="post-list" class="space-y-4"></div></div>
+        <div id="play" class="p-4 md:p-6"><h2 class="text-2xl font-bold mb-4">ゲームで遊ぶ</h2><div class="relative mb-6"><input type="text" placeholder="ゲームを検索" class="w-full p-4 pl-12 bg-gray-800 rounded-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"><i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i></div><h3 class="text-xl font-bold mb-4">おすすめ</h3><div id="game-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div></div>
+        <div id="post" class="p-4 md:p-6 flex flex-col items-center justify-center h-full"><div id="post-selection" class="text-center"><h2 class="text-3xl font-bold mb-8">何を投稿しますか？</h2><div class="flex justify-center gap-4"><button class="post-type-btn p-6 rounded-lg bg-gray-800 hover:bg-gray-700" data-type="video"><i data-lucide="video" class="w-12 h-12 mx-auto mb-2"></i>動画</button><button class="post-type-btn p-6 rounded-lg bg-gray-800 hover:bg-gray-700" data-type="image"><i data-lucide="image" class="w-12 h-12 mx-auto mb-2"></i>画像</button><button class="post-type-btn p-6 rounded-lg bg-gray-800 hover:bg-gray-700" data-type="text"><i data-lucide="file-text" class="w-12 h-12 mx-auto mb-2"></i>テキスト</button></div></div><form id="post-form-area" class="hidden w-full max-w-2xl"></form></div>
+        <div id="admin" class="p-8 flex items-center justify-center text-gray-500">現在利用できません。</div>
+        
+        <!-- アカウント -->
+        <div id="account" class="p-4 md:p-8">
+            <div id="account-loading" class="text-center text-gray-400">読み込み中...</div>
+            <div id="account-content" class="hidden max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center gap-6 p-6 bg-gray-800 rounded-lg mb-8">
+                    <div class="relative group">
+                        <img id="account-icon" src="" class="w-24 h-24 rounded-full border-4 border-red-500 object-cover">
+                        <label for="icon-upload-input" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                            <i data-lucide="camera" class="w-8 h-8"></i>
+                            <input type="file" id="icon-upload-input" class="hidden" accept="image/png, image/jpeg, image/gif">
+                        </label>
+                    </div>
+                    <div>
+                        <h2 id="account-name" class="text-3xl font-bold"></h2>
+                        <p id="account-id" class="text-gray-400"></p>
+                        <div class="flex gap-6 mt-2">
+                            <p><span id="following-count" class="font-bold">0</span> フォロー中</p>
+                            <p><span id="follower-count" class="font-bold">0</span> フォロワー</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="account-tabs" class="flex border-b border-gray-700 mb-6">
+                    <button class="account-tab-btn submenu-active px-4 py-2" data-tab="posts">投稿</button>
+                     <button class="account-tab-btn px-4 py-2" data-tab="dm">DM</button>
+                    <button class="account-tab-btn px-4 py-2" data-tab="settings">設定</button>
+                </div>
+                <div id="account-tab-content">
+                    <div id="account-tab-posts"></div>
+                    <div id="account-tab-settings" class="hidden space-y-6 bg-gray-800 p-6 rounded-lg">
+                        <form id="account-update-form" class="space-y-4">
+                            <div><label class="font-bold">名前</label><input type="text" id="update-name" class="mt-1 w-full p-2 bg-gray-700 rounded-md"></div>
+                            <div><label class="font-bold">ID</label><input type="text" id="update-id" class="mt-1 w-full p-2 bg-gray-700 rounded-md" pattern="^[a-zA-Z0-9_]+$"></div>
+                            <div>
+                                <label class="font-bold">ステータス</label>
+                                <select id="update-status" class="mt-1 w-full p-2 bg-gray-700 rounded-md">
+                                    <option value="online">オンライン</option>
+                                    <option value="away">離席中</option>
+                                    <option value="offline">オフライン</option>
+                                </select>
+                            </div>
+                            <hr class="border-gray-700">
+                            <div>
+                                <label class="font-bold">現在のパスワード</label>
+                                <div class="relative mt-1">
+                                    <input type="password" id="current-password" placeholder="パスワードを変更する場合に入力" class="w-full p-2 pr-10 bg-gray-700 rounded-md">
+                                    <button type="button" class="password-toggle-btn absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white">
+                                        <i data-lucide="eye" class="h-5 w-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="font-bold">新しいパスワード</label>
+                                <div class="relative mt-1">
+                                    <input type="password" id="new-password" class="w-full p-2 pr-10 bg-gray-700 rounded-md">
+                                     <button type="button" class="password-toggle-btn absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white">
+                                        <i data-lucide="eye" class="h-5 w-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full p-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors">保存する</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ユーザープロフィールページ -->
+        <div id="user-profile" class="p-4 md:p-8">
+            <button id="back-to-feed-btn" class="mb-4 flex items-center gap-2 text-gray-400 hover:text-white"><i data-lucide="arrow-left"></i> <span>戻る</span></button>
+            <div id="profile-loading" class="text-center text-gray-400">読み込み中...</div>
+            <div id="profile-content" class="hidden max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center gap-6 p-6 bg-gray-800 rounded-lg mb-8">
+                    <img id="profile-icon" src="" class="w-24 h-24 rounded-full border-4 border-red-500 object-cover">
+                    <div>
+                        <h2 id="profile-name" class="text-3xl font-bold"></h2>
+                        <p id="profile-id" class="text-gray-400"></p>
+                        <div class="flex gap-4 mt-4" id="profile-action-buttons">
+                           <!-- Follow and DM buttons will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-4">投稿一覧</h3>
+                <div id="profile-post-list" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <!-- 会話 -->
+        <div id="chat" class="flex h-full w-full overflow-hidden">
+            <div id="chat-list-view" class="w-full md:w-1/3 lg:w-1/4 bg-gray-900 border-r border-gray-800 flex flex-col">
+                <div class="p-4 border-b border-gray-800 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">トーク</h2>
+                    <button id="new-chat-btn"><i data-lucide="square-pen" class="text-gray-400 hover:text-white"></i></button>
+                </div>
+                <div id="chat-list-container" class="flex-1 overflow-y-auto"></div>
+            </div>
+            <div id="chat-message-view" class="hidden md:flex flex-1 flex-col bg-black">
+                <div class="h-full flex items-center justify-center text-gray-500">チャットを選択してください</div>
+            </div>
+             <div id="chat-user-list-view" class="hidden w-full md:w-1/3 lg:w-1/4 bg-gray-900 border-r border-gray-800 flex flex-col">
+                <div class="p-4 border-b border-gray-800 flex items-center gap-4">
+                    <button id="back-to-chat-list-btn"><i data-lucide="arrow-left"></i></button>
+                    <h2 class="text-xl font-bold">新しいチャット</h2>
+                </div>
+                 <div class="p-4 border-b border-gray-800">
+                    <button id="show-create-group-btn" class="w-full flex items-center justify-center gap-2 p-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold">
+                        <i data-lucide="users"></i>
+                        <span>新しいグループを作成</span>
+                    </button>
+                </div>
+                <div id="user-list-container" class="flex-1 overflow-y-auto"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // 【重要】デプロイしたGoogle Apps ScriptのウェブアプリURLをここに設定してください
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwW4CK8E1s2HLHx5FVRU_K5dJGH5dlJklJnUrYQcmVjlnIa-PCVZKDQfLX12yHSDwjX-w/exec';
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+        lucide.createIcons();
+
+        let currentUser = null;
+        let activeChatId = null;
+        let activeChatPartner = null;
+        let messagePollingInterval = null;
+        let navigationHistory = [];
+
+        const splashScreen = document.getElementById('splash-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        const contentArea = document.getElementById('content-area');
+        const mobileContentArea = document.getElementById('mobile-content-area');
+        const pageTemplates = document.getElementById('page-templates');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const errorToast = document.getElementById('error-toast');
+        const mobileHeaderContent = document.getElementById('mobile-header-content');
+        const createGroupModal = document.getElementById('create-group-modal');
+        const gameDetailModal = document.getElementById('game-detail-modal');
+
+
+        const menuConfig = {
+            'view': { label: '見る', icon: 'home', defaultSub: 'view-text', sub: {'view-search': '検索','view-text': 'メディア'}},
+            'play': { label: '遊ぶ', icon: 'gamepad-2', defaultSub: 'play' },
+            'post': { label: '投稿', icon: 'plus-square', defaultSub: 'post' },
+            'chat': { label: '会話', icon: 'message-square', defaultSub: 'chat' },
+            'account': { label: 'アカウント', icon: 'user', defaultSub: 'account' },
+            'admin': { label: '管理', icon: 'shield', defaultSub: 'admin', adminOnly: true },
+        };
+
+        function initialize() {
+            setTimeout(() => {
+                splashScreen.style.transition = 'opacity 0.5s';
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    const savedUser = localStorage.getItem('currentUser');
+                    if (savedUser) {
+                        currentUser = JSON.parse(savedUser);
+                        showMainApp();
+                    } else {
+                        showAuthScreen();
+                    }
+                }, 500);
+            }, 2000);
+            setupAuthForms();
+            setupLogoutButtons();
+            setupPasswordToggles();
+            setupGroupCreationModal();
+            setupGameDetailModal();
+        }
+
+        // --- UI制御 ---
+        function showLoading(text = "処理中...") { loadingText.textContent = text; loadingOverlay.classList.remove('hidden'); }
+        function hideLoading() { loadingOverlay.classList.add('hidden'); }
+        function showErrorToast() { errorToast.classList.remove('hidden'); setTimeout(() => errorToast.classList.add('hidden'), 3000); }
+        function showAuthScreen() { authScreen.classList.remove('hidden'); mainApp.classList.add('hidden'); }
+        function showMainApp() { authScreen.classList.add('hidden'); mainApp.classList.remove('hidden'); buildMenus(); navigateTo('view', 'view-text'); }
+
+        // --- ナビゲーション ---
+        function navigateTo(mainPageKey, subPageId) {
+            if (messagePollingInterval) clearInterval(messagePollingInterval);
+            
+            const id = subPageId || mainPageKey;
+            
+            if (!['user-profile', 'game-tetris'].includes(id)) {
+                navigationHistory.push({ mainPageKey, subPageId: id });
+                if (navigationHistory.length > 10) navigationHistory.shift(); 
+            }
+            
+            const template = pageTemplates.querySelector(`#${id}`);
+            const content = template ? template.cloneNode(true) : document.createElement('div');
+            [contentArea, mobileContentArea].forEach(area => { area.innerHTML = ''; area.appendChild(content.cloneNode(true)); });
+            lucide.createIcons();
+            
+            if (!['user-profile', 'game-tetris'].includes(id)) {
+                updateMenuActiveState(mainPageKey, id);
+            }
+            
+            switch (id) {
+                case 'view-search': initSearchPage(); break;
+                case 'view-text': loadTextFeed(); break;
+                case 'play': loadGames(); break;
+                case 'post': initPostPage(); break;
+                case 'account': initAccountPage(); break;
+                case 'chat': initChatPage(); break;
+            }
+        }
+
+        function goBack() {
+            navigationHistory.pop(); 
+            const lastPage = navigationHistory.pop(); 
+            if (lastPage) {
+                navigateTo(lastPage.mainPageKey, lastPage.subPageId);
+            } else {
+                navigateTo('view', 'view-text'); 
+            }
+        }
+
+        function updateMenuActiveState(mainPageKey, subPageId) {
+            document.querySelectorAll('.main-menu-item').forEach(el => el.classList.toggle('active-menu', el.dataset.page === mainPageKey));
+            buildSubMenus(mainPageKey);
+            document.querySelectorAll('.submenu-item').forEach(el => el.classList.toggle('submenu-active', el.dataset.subpage === subPageId));
+        }
+        
+        // --- メニュー構築 ---
+        function buildMenus() {
+            document.querySelectorAll('.main-menu-container').forEach(container => {
+                container.innerHTML = '';
+                Object.keys(menuConfig).forEach(key => {
+                    const item = menuConfig[key];
+                    if (item.adminOnly && (!currentUser || currentUser.role !== 'admin')) return;
+                    const isMobileNav = container.classList.contains('justify-around');
+                    const btn = document.createElement('button');
+                    btn.dataset.page = key;
+                    btn.onclick = () => navigateTo(key, item.defaultSub || key);
+                    if (isMobileNav) {
+                        btn.className = 'flex flex-col items-center p-2 main-menu-item w-16';
+                        btn.innerHTML = `<i data-lucide="${item.icon}" class="main-menu-icon"></i><span class="text-xs truncate">${item.label}</span>`;
+                    } else {
+                        btn.className = 'w-full text-left p-3 hover:bg-gray-800 rounded-lg flex items-center gap-3 transition-colors main-menu-item';
+                        btn.innerHTML = `<i data-lucide="${item.icon}" class="main-menu-icon"></i><span>${item.label}</span>`;
+                    }
+                    container.appendChild(btn);
+                });
+            });
+            lucide.createIcons();
+        }
+
+        function buildSubMenus(mainPageKey) {
+            const pcSubmenu = document.getElementById('pc-submenu');
+            mobileHeaderContent.innerHTML = ''; 
+            pcSubmenu.innerHTML = '';
+            
+            const config = menuConfig[mainPageKey];
+            if (!config || !config.sub) {
+                 mobileHeaderContent.innerHTML = `<h1 class="text-lg font-bold">${config.label}</h1>`;
+                 return;
+            };
+
+            Object.keys(config.sub).forEach(subKey => {
+                const btn = document.createElement('button');
+                btn.className = 'px-3 py-2 text-sm font-medium text-gray-400 hover:text-white submenu-item';
+                btn.dataset.subpage = subKey;
+                btn.textContent = config.sub[subKey];
+                btn.onclick = () => navigateTo(mainPageKey, subKey);
+                pcSubmenu.appendChild(btn.cloneNode(true)).onclick = () => navigateTo(mainPageKey, subKey);
+                mobileHeaderContent.appendChild(btn);
+            });
+        }
+        // --- 認証 ---
+        function setupAuthForms() {
+            document.getElementById('show-register-btn').addEventListener('click', () => { document.getElementById('login-form-container').classList.add('hidden'); document.getElementById('register-form-container').classList.remove('hidden'); });
+            document.getElementById('show-login-btn').addEventListener('click', () => { document.getElementById('register-form-container').classList.add('hidden'); document.getElementById('login-form-container').classList.remove('hidden'); });
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('register-form').addEventListener('submit', handleRegister);
+        }
+
+        function setupPasswordToggles() {
+             document.body.addEventListener('click', function(e) {
+                const toggleBtn = e.target.closest('.password-toggle-btn');
+                if (toggleBtn) {
+                    e.preventDefault();
+                    const wrapper = toggleBtn.parentElement;
+                    const input = wrapper.querySelector('input');
+                    const icon = toggleBtn.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.setAttribute('data-lucide', 'eye-off');
+                    } else {
+                        input.type = 'password';
+                        icon.setAttribute('data-lucide', 'eye');
+                    }
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        async function handleLogin(e) { e.preventDefault(); const id = document.getElementById('login-id').value; const password = document.getElementById('login-password').value; showLoading(); const result = await callGasApi('login', { id, password }); hideLoading(); if (result.success) { currentUser = result.user; localStorage.setItem('currentUser', JSON.stringify(currentUser)); showMainApp(); } else { alert('ログインに失敗しました: ' + result.message); } }
+        async function handleRegister(e) { e.preventDefault(); const name = document.getElementById('register-name').value; const id = document.getElementById('register-id').value; const password = document.getElementById('register-password').value; const language = document.getElementById('register-language').value; showLoading(); const result = await callGasApi('register', { name, id, password, language }); hideLoading(); if (result.success) { currentUser = result.user; localStorage.setItem('currentUser', JSON.stringify(currentUser)); alert('登録が完了しました。'); showMainApp(); } else { alert('登録に失敗しました: ' + result.message); } }
+        function setupLogoutButtons() { const logout = () => { currentUser = null; localStorage.removeItem('currentUser'); navigationHistory = []; showAuthScreen(); }; document.getElementById('logout-btn-pc').addEventListener('click', logout); document.getElementById('logout-btn-mobile').addEventListener('click', logout); }
+        
+        // --- データ読み込み ---
+        async function loadTextFeed(container, userId) {
+            const postList = container || document.querySelector('#post-list') || document.querySelector('#mobile-content-area #post-list');
+            if(!postList) return;
+            postList.innerHTML = `<div class="text-center text-gray-400">読み込み中...</div>`;
+            const result = await callGasApi('getPosts', { userId, currentUserId: currentUser.id });
+            if (result.success && result.posts) {
+                if (result.posts.length === 0) { postList.innerHTML = `<div class="text-center text-gray-400">まだ投稿がありません。</div>`; return; }
+                postList.innerHTML = result.posts.map(post => {
+                    let mediaHtml = '';
+                    if(post.mediaUrl){
+                        if(post.type === 'image'){
+                            mediaHtml = `<img src="${post.mediaUrl}" class="mt-2 rounded-lg w-full max-w-lg mx-auto object-contain">`;
+                        } else if(post.type === 'video'){
+                            mediaHtml = `<div class="mt-2 w-full max-w-lg mx-auto aspect-video"><iframe src="${post.mediaUrl}" frameborder="0" width="100%" height="100%" allow="autoplay; fullscreen"></iframe></div>`;
+                        }
+                    }
+                    const userInfoHtml = `
+                        <div class="flex items-center gap-3 mb-2 cursor-pointer" onclick="showUserProfile('${post.userId}')">
+                            <img src="${post.userIconUrl || `https://placehold.co/40x40/7F1D1D/FFFFFF?text=${post.userId.charAt(0).toUpperCase()}`}" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <p class="font-bold hover:underline">${post.userName || post.userId}</p>
+                                <p class="text-sm text-gray-400">@${post.userId}・${new Date(post.timestamp).toLocaleString()}</p>
+                            </div>
+                        </div>`;
+
+                    return `
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        ${userInfoHtml}
+                        ${post.content ? `<p class="whitespace-pre-wrap mb-2">${post.content}</p>` : ''}
+                        ${mediaHtml}
+                    </div>`;
+                }).join('');
+            } else { postList.innerHTML = `<div class="text-center text-red-400">投稿の読み込みに失敗しました。</div>`; }
+        }
+        async function loadGames() {
+             const gameList = document.querySelector('#game-list') || document.querySelector('#mobile-content-area #game-list'); if(!gameList) return; gameList.innerHTML = `<div class="text-center text-gray-400 col-span-full">読み込み中...</div>`; const result = await callGasApi('getGames'); if (result.success && result.games) { if (result.games.length === 0) { gameList.innerHTML = `<div class="text-center text-gray-400 col-span-full">プレイできるゲームがありません。</div>`; return; } gameList.innerHTML = result.games.map(game => `<div class="game-item bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:ring-2 ring-red-500 transition-all" data-game-id="${game.gameId}" data-title="${game.title}" data-description="${game.description || ''}" data-icon-url="${game.iconUrl || 'https://placehold.co/300x200/4B5563/FFFFFF?text=Game'}" data-game-url="${game.gameUrl || ''}"><img src="${game.iconUrl || 'https://placehold.co/300x200/4B5563/FFFFFF?text=Game'}" class="w-full h-32 object-cover"><div class="p-3"><h4 class="font-bold truncate">${game.title}</h4><p class="text-sm text-gray-400 truncate">${game.description}</p></div></div>`).join(''); gameList.querySelectorAll('.game-item').forEach(el => { el.onclick = () => showGameDetail(el.dataset); }); } else { gameList.innerHTML = `<div class="text-center text-red-400 col-span-full">ゲームの読み込みに失敗しました。</div>`; }
+        }
+        
+        // --- Search ---
+        function initSearchPage() {
+            const container = document.querySelector('#view-search') || document.querySelector('#mobile-content-area #view-search');
+            if (!container) return;
+            const input = container.querySelector('#search-input');
+            input.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch(input.value);
+                }
+            });
+        }
+
+        async function performSearch(query) {
+            const container = document.getElementById('search-results-container');
+            if (!query || query.trim() === '') {
+                 container.innerHTML = '<p class="text-center text-gray-400">検索結果がここに表示されます。</p>';
+                 return;
+            }
+            container.innerHTML = `<div class="text-center text-gray-400">検索中...</div>`;
+            const result = await callGasApi('searchContent', { query });
+            if (result.success) {
+                const { users, posts } = result.results;
+                let html = '';
+                if(users.length > 0) {
+                    html += '<h3 class="text-xl font-bold mb-4">ユーザー</h3>';
+                    html += '<div class="space-y-2">';
+                    html += users.map(user => `
+                        <div class="flex items-center gap-3 p-2 rounded-md hover:bg-gray-800 cursor-pointer" onclick="showUserProfile('${user.id}')">
+                            <img src="${user.iconUrl || `https://placehold.co/40x40/1D4ED8/FFFFFF?text=${user.name.charAt(0).toUpperCase()}`}" class="w-10 h-10 rounded-full object-cover">
+                            <div><p class="font-bold">${user.name}</p><p class="text-sm text-gray-400">@${user.id}</p></div>
+                        </div>`).join('');
+                    html += '</div>';
+                }
+                 if(posts.length > 0) {
+                    html += '<h3 class="text-xl font-bold mt-6 mb-4">投稿</h3>';
+                    html += '<div class="space-y-4">';
+                    html += posts.map(post => {
+                        let mediaHtml = '';
+                        if(post.mediaUrl){
+                            if(post.type === 'image'){ mediaHtml = `<img src="${post.mediaUrl}" class="mt-2 rounded-lg w-full max-w-sm mx-auto object-contain">`; } 
+                            else if(post.type === 'video'){ mediaHtml = `<div class="mt-2 w-full max-w-sm mx-auto aspect-video"><iframe src="${post.mediaUrl}" frameborder="0" width="100%" height="100%" allow="autoplay; fullscreen"></iframe></div>`; }
+                        }
+                        return `
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <div class="flex items-center gap-3 mb-2 cursor-pointer" onclick="showUserProfile('${post.userId}')">
+                                <img src="${post.userIconUrl || `https://placehold.co/40x40/7F1D1D/FFFFFF?text=${post.userId.charAt(0).toUpperCase()}`}" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <p class="font-bold hover:underline">${post.userName}</p>
+                                    <p class="text-sm text-gray-400">@${post.userId}・${new Date(post.timestamp).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            ${post.content ? `<p class="whitespace-pre-wrap mb-2">${post.content}</p>` : ''}
+                            ${mediaHtml}
+                        </div>`;
+                    }).join('');
+                    html += '</div>';
+                }
+
+                if (html === '') {
+                    html = '<p class="text-center text-gray-400">検索結果が見つかりませんでした。</p>';
+                }
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `<p class="text-center text-red-500">検索に失敗しました。</p>`;
+            }
+        }
+
+        // --- 投稿 ---
+        function initPostPage() {
+            const container = document.querySelector('#post') || document.querySelector('#mobile-content-area #post');
+            const selection = container.querySelector('#post-selection');
+            const formArea = container.querySelector('#post-form-area');
+            
+            const showForm = (type) => {
+                selection.classList.add('hidden');
+                formArea.classList.remove('hidden');
+                let formHtml = `<textarea name="content" placeholder="キャプションを追加..." class="w-full h-24 p-3 bg-gray-800 rounded-lg border border-gray-700 mb-4"></textarea>`;
+                
+                if (type === 'image' || type === 'video') {
+                     formHtml += `
+                        <div class="mb-4">
+                           <label class="font-bold mb-2 block">公開範囲</label>
+                           <select name="privacy" class="w-full p-2 bg-gray-700 rounded-md">
+                             <option value="public">公開</option>
+                             <option value="friends">友達（フォロー中）のみ</option>
+                           </select>
+                        </div>
+                     `;
+                }
+
+                if (type === 'image') {
+                    formHtml += `
+                        <input type="file" name="file" accept="image/png, image/jpeg, image/gif" class="mb-4 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200"/>
+                        <div id="media-preview" class="mb-4 max-h-64 overflow-hidden flex justify-center"></div>`;
+                } else if (type === 'video') {
+                    formHtml += `
+                        <p class="text-sm text-yellow-400 mb-2">⚠ 25MB以下の短い動画を推奨します。大きいファイルは失敗する可能性があります。</p>
+                        <input type="file" name="file" accept="video/mp4, video/webm, video/quicktime" class="mb-4 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200"/>
+                        <div id="media-preview" class="mb-4 max-h-64 overflow-hidden flex justify-center"></div>`;
+                }
+
+                formHtml += `
+                    <p class="text-xs text-center text-gray-500 mb-4">※ 著作権は守りましょう。</p>
+                    <div class="flex gap-4">
+                        <button type="button" class="post-back-btn w-full p-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold transition-colors">戻る</button>
+                        <button type="submit" class="w-full p-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors">投稿する</button>
+                    </div>`;
+
+                formArea.innerHTML = formHtml;
+                formArea.dataset.postType = type;
+                formArea.querySelector('.post-back-btn').onclick = () => { selection.classList.remove('hidden'); formArea.classList.add('hidden'); };
+                formArea.onsubmit = handlePostSubmit;
+
+                if (type === 'image' || type === 'video') {
+                    formArea.querySelector('input[name="file"]').onchange = (e) => {
+                        const file = e.target.files[0];
+                        const previewContainer = formArea.querySelector('#media-preview');
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                if(type === 'image') {
+                                    previewContainer.innerHTML = `<img src="${event.target.result}" class="max-h-64 object-contain rounded-lg">`;
+                                } else {
+                                     previewContainer.innerHTML = `<video src="${event.target.result}" class="max-h-64 object-contain rounded-lg" controls></video>`;
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                }
+            };
+
+            container.querySelector('.post-type-btn[data-type="text"]').onclick = () => showForm('text');
+            container.querySelector('.post-type-btn[data-type="image"]').onclick = () => showForm('image');
+            container.querySelector('.post-type-btn[data-type="video"]').onclick = () => showForm('video');
+        }
+
+        async function handlePostSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const type = form.dataset.postType;
+            const content = form.querySelector('textarea[name="content"]').value.trim();
+            const fileInput = form.querySelector('input[name="file"]');
+            const privacySelect = form.querySelector('select[name="privacy"]');
+            const privacy = privacySelect ? privacySelect.value : 'public';
+            
+            const payload = { userId: currentUser.id, type, content, privacy };
+
+            if (type === 'text') {
+                if(!content) { alert('投稿内容を入力してください。'); return; }
+                showLoading("投稿中...");
+                const result = await callGasApi('addPost', payload);
+                hideLoading();
+                if (result.success) {
+                    alert('投稿しました。');
+                    navigateTo('view', 'view-text');
+                } else {
+                    alert('投稿に失敗しました: ' + result.message);
+                }
+            } else if (type === 'image' || type === 'video') {
+                const file = fileInput.files[0];
+                if (!file) { alert(type === 'image' ? '画像ファイルを選択してください。' : '動画ファイルを選択してください。'); return; }
+                
+                const maxSize = type === 'image' ? 5 : 25; // image 5MB, video 25MB
+                if (file.size > maxSize * 1024 * 1024) {
+                    alert(`ファイルサイズは${maxSize}MB以下にしてください。`);
+                    return;
+                }
+                
+                showLoading("投稿処理中...");
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const base64String = event.target.result.split(',')[1];
+                    payload.fileData = { base64: base64String, mimeType: file.type, name: file.name };
+                    const result = await callGasApi('addPost', payload);
+                    hideLoading();
+                    if (result.success) {
+                        alert('投稿しました。');
+                        navigateTo('view', 'view-text');
+                    } else {
+                        alert('投稿に失敗しました: ' + result.message);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // --- アカウント & プロフィールページ ---
+        async function showUserProfile(userId) {
+            if (userId === currentUser.id) {
+                navigateTo('account', 'account');
+                return;
+            }
+            navigateTo(null, 'user-profile');
+            const container = document.querySelector('#user-profile');
+            container.querySelector('#back-to-feed-btn').onclick = goBack;
+            const result = await callGasApi('getUserProfile', { userId, currentUserId: currentUser.id });
+            const content = container.querySelector('#profile-content');
+            container.querySelector('#profile-loading').classList.add('hidden');
+            content.classList.remove('hidden');
+
+            if (result.success) {
+                const { user } = result;
+                content.querySelector('#profile-icon').src = user.iconUrl || `https://placehold.co/96x96/166534/FFFFFF?text=${user.id.charAt(0).toUpperCase()}`;
+                content.querySelector('#profile-name').textContent = user.name;
+                content.querySelector('#profile-id').textContent = `@${user.id}`;
+                
+                const buttonsContainer = content.querySelector('#profile-action-buttons');
+                buttonsContainer.innerHTML = ''; // Clear old buttons
+
+                const followBtn = document.createElement('button');
+                followBtn.textContent = user.isFollowing ? 'フォロー中' : 'フォロー';
+                followBtn.className = user.isFollowing 
+                    ? 'px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-full font-bold' 
+                    : 'px-4 py-2 bg-red-600 hover:bg-red-700 rounded-full font-bold';
+                followBtn.onclick = async () => {
+                    const res = await callGasApi('toggleFollow', { followerId: currentUser.id, followingId: userId });
+                    if(res.success){
+                        showUserProfile(userId); // Re-render the profile page
+                    }
+                };
+                buttonsContainer.appendChild(followBtn);
+
+                if(user.isFollowing){
+                    const dmBtn = document.createElement('button');
+                    dmBtn.textContent = 'DMを送る';
+                    dmBtn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-full font-bold';
+                    dmBtn.onclick = async () => {
+                         showLoading();
+                        const chatResult = await callGasApi('findOrCreateChat', { userId1: currentUser.id, userId2: user.id });
+                        hideLoading();
+                        if (chatResult.success) {
+                            navigateTo('chat', 'chat');
+                            // Wait for chat page to render before opening chat
+                            setTimeout(() => openChat(chatResult.chatId, user, 'dm'), 100);
+                        } else {
+                            alert('チャットの開始に失敗しました。');
+                        }
+                    };
+                    buttonsContainer.appendChild(dmBtn);
+                }
+
+                loadTextFeed(content.querySelector('#profile-post-list'), userId);
+            } else {
+                content.innerHTML = `<p class="text-center text-red-500">${result.message}</p>`;
+            }
+        }
+
+        async function initAccountPage() {
+            const pageRoot = document.querySelector('#content-area #account') || document.querySelector('#mobile-content-area #account');
+            if (!pageRoot) return;
+
+            const loadingEl = pageRoot.querySelector('#account-loading');
+            const contentEl = pageRoot.querySelector('#account-content');
+            if(!loadingEl || !contentEl) return;
+
+            const result = await callGasApi('getMyProfile', { userId: currentUser.id });
+            
+            loadingEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+
+            if (result.success) {
+                const { user } = result;
+                currentUser = {...currentUser, ...user};
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                contentEl.querySelector('#account-icon').src = user.iconUrl || `https://placehold.co/96x96/166534/FFFFFF?text=${user.id.charAt(0).toUpperCase()}`;
+                contentEl.querySelector('#account-name').textContent = user.name;
+                contentEl.querySelector('#account-id').textContent = `@${user.id}`;
+                contentEl.querySelector('#following-count').textContent = user.followingCount || 0;
+                contentEl.querySelector('#follower-count').textContent = user.followerCount || 0;
+                contentEl.querySelector('#update-name').value = user.name;
+                contentEl.querySelector('#update-id').value = user.id;
+                contentEl.querySelector('#update-status').value = user.status || 'online';
+                
+                loadTextFeed(contentEl.querySelector('#account-tab-posts'), currentUser.id);
+            }
+
+            contentEl.querySelectorAll('.account-tab-btn').forEach(btn => {
+                btn.onclick = () => {
+                    if (btn.dataset.tab === 'dm') {
+                        navigateTo('chat', 'chat');
+                        return;
+                    }
+                    contentEl.querySelectorAll('.account-tab-btn').forEach(b => b.classList.remove('submenu-active'));
+                    btn.classList.add('submenu-active');
+                    contentEl.querySelector('#account-tab-posts').classList.toggle('hidden', btn.dataset.tab !== 'posts');
+                    contentEl.querySelector('#account-tab-settings').classList.toggle('hidden', btn.dataset.tab !== 'settings');
+                }
+            });
+            contentEl.querySelector('#account-update-form').onsubmit = handleUpdateAccount;
+            contentEl.querySelector('#icon-upload-input').onchange = handleIconUpdate;
+        }
+        
+        async function handleIconUpdate(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit for icons
+                alert('アイコンのファイルサイズは2MB以下にしてください。');
+                return;
+            }
+            showLoading("アイコンを更新中...");
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64String = event.target.result.split(',')[1];
+                const fileData = { base64: base64String, mimeType: file.type, name: file.name };
+                const result = await callGasApi('updateAccount', { userId: currentUser.id, fileData });
+                hideLoading();
+                if(result.success) {
+                    alert('アイコンを更新しました。');
+                    initAccountPage(); // Reload account page
+                } else {
+                    alert('アイコンの更新に失敗しました: ' + result.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function handleUpdateAccount(e) {
+            e.preventDefault();
+            const form = e.target;
+            const payload = {
+                userId: currentUser.id,
+                name: form.querySelector('#update-name').value,
+                id: form.querySelector('#update-id').value,
+                status: form.querySelector('#update-status').value,
+                currentPassword: form.querySelector('#current-password').value,
+                newPassword: form.querySelector('#new-password').value,
+            };
+            if(payload.newPassword && !payload.currentPassword){
+                alert('新しいパスワードを設定するには、現在のパスワードを入力してください。');
+                return;
+            }
+            showLoading();
+            const result = await callGasApi('updateAccount', payload);
+            hideLoading();
+            alert(result.message);
+            if(result.success) {
+                currentUser.id = payload.id;
+                currentUser.name = payload.name;
+                currentUser.status = payload.status;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                form.querySelector('#current-password').value = '';
+                form.querySelector('#new-password').value = '';
+                initAccountPage();
+            }
+        }
+
+        // --- チャットページ ---
+        function initChatPage() {
+            const container = document.querySelector('#chat') || document.querySelector('#mobile-content-area #chat');
+            if(!container) return;
+            container.querySelector('#new-chat-btn').onclick = showUserList;
+            container.querySelector('#back-to-chat-list-btn').onclick = showChatList;
+            container.querySelector('#show-create-group-btn').onclick = openGroupCreationModal;
+            loadChatList();
+        }
+
+        async function loadChatList() {
+            const container = document.querySelector('#chat-list-container') || document.querySelector('#mobile-content-area #chat-list-container');
+            if(!container) return;
+            container.innerHTML = `<div class="text-center text-gray-400 p-4">読み込み中...</div>`;
+            const result = await callGasApi('getChatList', { userId: currentUser.id });
+            if (result.success && result.chats) {
+                 if(result.chats.length === 0){ container.innerHTML = `<div class="text-center text-gray-400 p-4">トーク履歴がありません。</div>`; return; }
+                container.innerHTML = result.chats.map(chat => {
+                    const isGroup = chat.type === 'group';
+                    const name = isGroup ? chat.groupName : chat.partner.name;
+                    const iconUrl = isGroup ? `https://placehold.co/48x48/3730a3/FFFFFF?text=${name.charAt(0).toUpperCase()}` : chat.partner.iconUrl || `https://placehold.co/48x48/BE123C/FFFFFF?text=${name.charAt(0).toUpperCase()}`;
+                    const partnerData = isGroup ? '' : `data-chat-partner='${JSON.stringify(chat.partner)}'`;
+
+                    return `
+                    <div class="p-4 flex items-center gap-3 cursor-pointer hover:bg-gray-800 border-b border-gray-800" data-chat-id="${chat.chatId}" data-chat-name="${name}" data-chat-type="${chat.type}" data-creator-id="${chat.creatorId || ''}" ${partnerData}>
+                        <img src="${iconUrl}" class="w-12 h-12 rounded-full object-cover">
+                        <div class="flex-1 overflow-hidden"><div class="flex justify-between"><p class="font-bold truncate">${name}</p><span class="text-xs text-gray-400 flex-shrink-0">${new Date(chat.lastMessageTimestamp).toLocaleTimeString()}</span></div><p class="text-sm text-gray-400 truncate">${chat.lastMessage}</p></div>
+                    </div>`;
+                }).join('');
+                container.querySelectorAll('[data-chat-id]').forEach(el => {
+                    el.onclick = () => {
+                        const partner = el.dataset.chatPartner ? JSON.parse(el.dataset.chatPartner) : null;
+                        openChat(el.dataset.chatId, partner ? partner : el.dataset.chatName, el.dataset.chatType, el.dataset.creatorId);
+                    }
+                });
+            } else {
+                container.innerHTML = `<div class="text-center text-red-400 p-4">チャットリストの読み込みに失敗しました。</div>`;
+            }
+        }
+
+        async function showUserList() {
+            document.getElementById('chat-list-view').classList.add('hidden');
+            document.getElementById('chat-user-list-view').classList.remove('hidden');
+            const container = document.getElementById('user-list-container');
+            container.innerHTML = `<div class="text-center text-gray-400 p-4">読み込み中...</div>`;
+            const result = await callGasApi('getUsers', { excludeId: currentUser.id });
+            if (result.success && result.users) {
+                 if (result.users.length === 0) {
+                    container.innerHTML = `<p class="text-center text-gray-400 p-4">他のユーザーが見つかりません。</p>`;
+                    return;
+                }
+                container.innerHTML = result.users.map(user => `
+                    <div class="p-4 flex items-center gap-3 cursor-pointer hover:bg-gray-800 border-b border-gray-800" data-user-id="${user.id}">
+                        <img src="${user.iconUrl || `https://placehold.co/48x48/1D4ED8/FFFFFF?text=${user.name.charAt(0).toUpperCase()}`}" class="w-12 h-12 rounded-full object-cover">
+                        <div><p class="font-bold">${user.name}</p><p class="text-sm text-gray-400">@${user.id}</p></div>
+                    </div>`).join('');
+                container.querySelectorAll('[data-user-id]').forEach(el => {
+                    el.onclick = async () => {
+                        const userId = el.dataset.userId;
+                        const userResult = await callGasApi('getUserProfile', { userId, currentUserId: currentUser.id });
+                        if(userResult.success){
+                            const partner = userResult.user;
+                            showLoading();
+                            const chatResult = await callGasApi('findOrCreateChat', { userId1: currentUser.id, userId2: partner.id });
+                            hideLoading();
+                            if (chatResult.success) {
+                                openChat(chatResult.chatId, partner, 'dm');
+                            } else {
+                                alert('チャットの開始に失敗しました。');
+                            }
+                        }
+                    };
+                });
+            }
+        }
+        function showChatList() { document.getElementById('chat-user-list-view').classList.add('hidden'); document.getElementById('chat-list-view').classList.remove('hidden'); }
+        
+        function openChat(chatId, partnerOrGroupName, type, creatorId) {
+            activeChatId = chatId;
+            activeChatPartner = type === 'dm' ? partnerOrGroupName : null;
+            const view = document.getElementById('chat-message-view');
+            view.classList.remove('hidden'); 
+            if(window.innerWidth < 768){ 
+                 document.getElementById('chat-list-view').classList.add('hidden');
+                 document.getElementById('chat-user-list-view').classList.add('hidden');
+            }
+            
+            const isGroup = type === 'group';
+            const name = isGroup ? partnerOrGroupName : partnerOrGroupName.name;
+            const iconUrl = isGroup ? `https://placehold.co/40x40/3730a3/FFFFFF?text=${name.charAt(0).toUpperCase()}` : partnerOrGroupName.iconUrl || `https://placehold.co/40x40/BE123C/FFFFFF?text=${name.charAt(0).toUpperCase()}`;
+
+            let headerButtons = '';
+            if (isGroup && creatorId === currentUser.id) {
+                headerButtons += `<button onclick="deleteGroup('${chatId}')"><i data-lucide="trash-2" class="text-gray-400 hover:text-red-500"></i></button>`;
+            }
+
+            view.innerHTML = `
+                <div class="h-16 flex items-center justify-between px-6 bg-gray-900 border-b border-gray-800">
+                    <div class="flex items-center gap-3"><button id="back-to-list-mobile" class="md:hidden"><i data-lucide="arrow-left"></i></button><img src="${iconUrl}" class="w-10 h-10 rounded-full object-cover"><h3 class="text-lg font-bold">${name}</h3></div>
+                    <div class="flex items-center gap-4">${headerButtons}</div>
+                </div>
+                <div id="message-container" class="flex-1 p-6 overflow-y-auto space-y-4"></div>
+                <div class="p-4 bg-gray-900">
+                    <form id="message-form" class="flex items-center gap-2 bg-gray-800 rounded-lg p-2">
+                        <input type="text" id="message-input" placeholder="Messageを入力..." class="flex-1 bg-transparent focus:outline-none px-2" required>
+                        <button type="submit" class="p-2 bg-red-600 rounded-full text-white"><i data-lucide="send"></i></button>
+                    </form>
+                </div>`;
+            lucide.createIcons();
+            view.querySelector('#back-to-list-mobile').onclick = () => { view.classList.add('hidden'); document.getElementById('chat-list-view').classList.remove('hidden'); };
+            view.querySelector('#message-form').onsubmit = handleSendMessage;
+            loadMessages(true);
+            if (messagePollingInterval) clearInterval(messagePollingInterval);
+            messagePollingInterval = setInterval(() => loadMessages(false), 3000); 
+        }
+
+        async function loadMessages(isInitial) {
+            if (!activeChatId) return;
+            const container = document.getElementById('message-container');
+            const result = await callGasApi('getMessages', { chatId: activeChatId });
+            if (result.success && result.messages) {
+                const regularMessages = result.messages;
+
+                container.innerHTML = regularMessages.map(msg => {
+                    const isMe = msg.senderId === currentUser.id;
+                    const userIcon = msg.senderIconUrl || `https://placehold.co/40x40/7F1D1D/FFFFFF?text=${msg.senderId.charAt(0).toUpperCase()}`;
+                    return `
+                    <div class="flex gap-3 ${isMe ? 'justify-end' : ''}">
+                        ${!isMe ? `<img src="${userIcon}" title="${msg.senderName || msg.senderId}" class="w-10 h-10 rounded-full object-cover self-end">` : ''}
+                        <div class="${isMe ? 'bg-red-600' : 'bg-gray-800'} p-3 rounded-lg max-w-xs md:max-w-md">
+                             ${!isMe ? `<p class="text-xs font-bold text-red-300 mb-1">${msg.senderName || msg.senderId}</p>`: ''}
+                            <p class="text-white">${msg.content}</p>
+                            <div class="text-xs ${isMe ? 'text-red-200' : 'text-gray-400'} text-right mt-1">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+                if(isInitial) container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        async function handleSendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+            if (!content || !activeChatId) return;
+            const tempContent = content;
+            input.value = '';
+            const result = await callGasApi('sendMessage', { chatId: activeChatId, senderId: currentUser.id, content: tempContent });
+            if(result.success) loadMessages(true);
+        }
+
+        // --- Group Chat ---
+        function setupGroupCreationModal() {
+            document.getElementById('cancel-group-creation').onclick = () => createGroupModal.classList.add('hidden');
+            document.getElementById('create-group-form').onsubmit = handleCreateGroup;
+        }
+
+        async function openGroupCreationModal() {
+            const listContainer = document.getElementById('group-members-list');
+            listContainer.innerHTML = '読み込み中...';
+            createGroupModal.classList.remove('hidden');
+            const result = await callGasApi('getUsers', { excludeId: currentUser.id, following: true });
+            if (result.success && result.users) {
+                if(result.users.length === 0){
+                    listContainer.innerHTML = '<p class="text-gray-400">グループに招待するには、まずユーザーをフォローしてください。</p>';
+                    return;
+                }
+                listContainer.innerHTML = result.users.map(user => `
+                    <label class="flex items-center gap-3 p-2 rounded-md hover:bg-gray-600 cursor-pointer">
+                        <input type="checkbox" name="group-member" value="${user.id}" class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-red-500 focus:ring-red-500">
+                        <img src="${user.iconUrl || `https://placehold.co/40x40/1D4ED8/FFFFFF?text=${user.name.charAt(0).toUpperCase()}`}" class="w-10 h-10 rounded-full object-cover">
+                        <span>${user.name} (@${user.id})</span>
+                    </label>
+                `).join('');
+            }
+        }
+        
+        async function handleCreateGroup(e) {
+            e.preventDefault();
+            const groupName = document.getElementById('group-name').value.trim();
+            if (!groupName) { alert('グループ名を入力してください。'); return; }
+
+            const selectedMembers = Array.from(document.querySelectorAll('input[name="group-member"]:checked')).map(el => el.value);
+            if(selectedMembers.length < 1) { alert('少なくとも1人のメンバーを選択してください。'); return; }
+
+            const participantIds = [currentUser.id, ...selectedMembers];
+
+            showLoading();
+            const result = await callGasApi('createGroupChat', { creatorId: currentUser.id, groupName, participantIds });
+            hideLoading();
+
+            if (result.success) {
+                alert('グループを作成しました。');
+                createGroupModal.classList.add('hidden');
+                document.getElementById('create-group-form').reset();
+                showChatList();
+                loadChatList();
+            } else {
+                alert('グループの作成に失敗しました: ' + result.message);
+            }
+        }
+
+        async function deleteGroup(chatId) {
+            if(confirm('本当にこのグループを削除しますか？この操作は元に戻せません。')) {
+                showLoading();
+                const result = await callGasApi('deleteGroupChat', { chatId, userId: currentUser.id });
+                hideLoading();
+                if(result.success){
+                    alert('グループを削除しました。');
+                    showChatList();
+                    loadChatList();
+                } else {
+                    alert('グループの削除に失敗しました: ' + result.message);
+                }
+            }
+        }
+        
+        // --- Game Detail Modal ---
+        function setupGameDetailModal() {
+            document.getElementById('close-game-detail').onclick = () => gameDetailModal.classList.add('hidden');
+        }
+        function showGameDetail(gameData) {
+            document.getElementById('game-detail-banner').src = gameData.iconUrl;
+            document.getElementById('game-detail-title').textContent = gameData.title;
+            document.getElementById('game-detail-description').textContent = gameData.description;
+            const playBtn = document.getElementById('play-game-btn');
+            playBtn.onclick = () => {
+                if (gameData.gameUrl) {
+                    window.open(gameData.gameUrl, '_blank');
+                } else {
+                    alert('このゲームのURLが設定されていません。');
+                }
+            };
+            gameDetailModal.classList.remove('hidden');
+        }
+
+
+        // --- GAS API ラッパー ---
+        async function callGasApi(action, payload) { if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') { console.warn('GAS_WEB_APP_URL is not set. Using mock data.'); return {success: false, message: "GAS URL is not configured."}; } try { const response = await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action, payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, }); if (!response.ok) throw new Error('Network response was not ok'); return await response.json(); } catch (error) { console.error('GAS API Call Failed:', error); showErrorToast(); return { success: false, message: error.message }; } }
+
+        // --- グローバルスコープに関数を公開 ---
+        window.showUserProfile = showUserProfile;
+        window.deleteGroup = deleteGroup;
+        window.navigateTo = navigateTo;
+
+        initialize();
+    });
+    </script>
+</body>
+</html>
+
